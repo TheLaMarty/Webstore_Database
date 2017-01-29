@@ -11,14 +11,6 @@ CREATE TABLE Customer (
   City       VARCHAR(50) DEFAULT NULL
 );
 
-CREATE TABLE Order (
-  'OrderNumber' CHAR(20) PRIMARY KEY,
-  'SKU'         CHAR(15),
-  'Quantity'    TINYINT,
-  'OrderValue'  INT,
-  'Date'        DATE
-);
-
 CREATE TABLE Product (
 
   SKU          CHAR(15) PRIMARY KEY,
