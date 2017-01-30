@@ -35,7 +35,7 @@ CREATE TABLE Product (
 
   SKU               INT    NOT NULL AUTO_INCREMENT PRIMARY KEY,
   ProductCategoryID INT    NOT NULL,
-  Manufacturer      VARCHAR(50),
+  Brand             VARCHAR(50),
   Name              VARCHAR(50),
   Size              VARCHAR(5),
   Price             DOUBLE NOT NULL,
@@ -66,8 +66,8 @@ CREATE TABLE OutOfStock (
 
 CREATE TABLE Inventory (
 
-  SKU          INT NOT NULL PRIMARY KEY,
-  Stock        SMALLINT,
+  SKU   INT NOT NULL PRIMARY KEY,
+  Stock SMALLINT,
 
   FOREIGN KEY (SKU) REFERENCES Product (SKU)
 
@@ -149,28 +149,28 @@ INSERT INTO ProductCategory (CategoryID, ID) VALUES (5, 4);
 INSERT INTO ProductCategory (CategoryID, ID) VALUES (5, 5);
 INSERT INTO ProductCategory (CategoryID, ID) VALUES (5, 7);
 
-INSERT INTO Product (ProductCategoryID, Manufacturer, Name, Size, Price)
+INSERT INTO Product (ProductCategoryID, Brand, Name, Size, Price)
 VALUES (1, 'Nudie', 'Magda', '32', 2000);
 
-INSERT INTO Product (ProductCategoryID, Manufacturer, Name, Size, Price)
+INSERT INTO Product (ProductCategoryID, Brand, Name, Size, Price)
 VALUES (1, 'Nudie', 'Magda', '34', 2000);
 
-INSERT INTO Product (ProductCategoryID, Manufacturer, Name, Size, Price)
+INSERT INTO Product (ProductCategoryID, Brand, Name, Size, Price)
 VALUES (1, 'Nudie', 'Magda', '36', 2000);
 
-INSERT INTO Product (ProductCategoryID, Manufacturer, Name, Size, Price)
+INSERT INTO Product (ProductCategoryID, Brand, Name, Size, Price)
 VALUES (2, 'Tiger Of Sweden', 'W/S', '32', 1889);
 
-INSERT INTO Product (ProductCategoryID, Manufacturer, Name, Size, Price)
+INSERT INTO Product (ProductCategoryID, Brand, Name, Size, Price)
 VALUES (3, 'HOPE-STHLM', 'Magda', '32', 2000);
 
-INSERT INTO Product (ProductCategoryID, Manufacturer, Name, Size, Price)
+INSERT INTO Product (ProductCategoryID, Brand, Name, Size, Price)
 VALUES (1, 'Hunkydory', 'Le La Jean', '36', 1799);
 
-INSERT INTO Product (ProductCategoryID, Manufacturer, Name, Size, Price)
+INSERT INTO Product (ProductCategoryID, Brand, Name, Size, Price)
 VALUES (4, 'Hunkydory', 'Eldon Jean', '38', 1699);
 
-INSERT INTO Product (ProductCategoryID, Manufacturer, Name, Size, Price)
+INSERT INTO Product (ProductCategoryID, Brand, Name, Size, Price)
 VALUES (5, 'HOPE-STHLM', 'STAY', '40', 1300);
 
 INSERT INTO Inventory (SKU, Stock)
