@@ -7,7 +7,7 @@ CREATE DATABASE Webstore;
 USE Webstore;
 
 CREATE TABLE Customer (
-  CustomerID INT AUTO_INCREMENT PRIMARY KEY,
+  CustomerID INT         AUTO_INCREMENT PRIMARY KEY,
   FirstName  VARCHAR(50) DEFAULT NULL,
   Surname    VARCHAR(50) DEFAULT NULL,
   City       VARCHAR(50) DEFAULT NULL
@@ -48,15 +48,11 @@ CREATE TABLE `Order` (
 
   OrderID    INT NOT NULL AUTO_INCREMENT,
   CustomerID INT NOT NULL,
-  SKU        INT NOT NULL,
   `Date`     DATE,
-  Quantity   TINYINT,
   PRIMARY KEY (OrderID),
-  FOREIGN KEY (CustomerID) REFERENCES Customer (CustomerID),
-  FOREIGN KEY (SKU) REFERENCES Product (SKU)
+  FOREIGN KEY (CustomerID) REFERENCES Customer (CustomerID)
 
 );
-
 
 
 CREATE TABLE OutOfStock (
@@ -80,8 +76,9 @@ CREATE TABLE Inventory (
 
 CREATE TABLE OrderProducts (
 
-  OrderID INT NOT NULL,
-  SKU     INT NOT NULL,
+  OrderID  INT NOT NULL,
+  SKU      INT NOT NULL,
+  Quantity TINYINT,
 
   PRIMARY KEY (OrderID, SKU),
   FOREIGN KEY (OrderID) REFERENCES `Order` (OrderID),
@@ -201,3 +198,56 @@ VALUES (7, 'Hunkydory', 100);
 INSERT INTO Inventory (SKU, Manufacturer, Stock)
 VALUES (8, 'HOPE-STHLM', 100);
 
+INSERT INTO `Order` (CustomerID, Date)
+VALUES (1, '2016-01-20 00:00:01');
+
+INSERT INTO `Order` (CustomerID, Date)
+VALUES (2, '2016-03-20 00:00:01');
+
+INSERT INTO `Order` (CustomerID, Date)
+VALUES (3, '2016-06-20 00:00:01');
+
+INSERT INTO `Order` (CustomerID, Date)
+VALUES (4, '2016-07-20 00:00:01');
+
+INSERT INTO `Order` (CustomerID, Date)
+VALUES (5, '2016-09-20 00:00:01');
+
+INSERT INTO `Order` (CustomerID, Date)
+VALUES (1, '2016-09-20 00:00:01');
+
+INSERT INTO `Order` (CustomerID, Date)
+VALUES (2, '2016-10-20 00:00:01');
+
+INSERT INTO `Order` (CustomerID, Date)
+VALUES (3, '2016-12-20 00:00:01');
+
+INSERT INTO OrderProducts (OrderID, SKU, Quantity)
+VALUES (1, 2, 60);
+INSERT INTO OrderProducts (OrderID, SKU, Quantity)
+VALUES (1, 4, 20);
+
+INSERT INTO OrderProducts (OrderID, SKU, Quantity)
+VALUES (2, 1, 30);
+INSERT INTO OrderProducts (OrderID, SKU, Quantity)
+VALUES (2, 3, 50);
+
+INSERT INTO OrderProducts (OrderID, SKU, Quantity)
+VALUES (3, 5, 10);
+INSERT INTO OrderProducts (OrderID, SKU, Quantity)
+VALUES (3, 1, 10);
+
+INSERT INTO OrderProducts (OrderID, SKU, Quantity)
+VALUES (4, 8, 30);
+INSERT INTO OrderProducts (OrderID, SKU, Quantity)
+VALUES (4, 7, 15);
+
+INSERT INTO OrderProducts (OrderID, SKU, Quantity)
+VALUES (5, 1, 40);
+INSERT INTO OrderProducts (OrderID, SKU, Quantity)
+VALUES (5, 8, 20);
+
+INSERT INTO OrderProducts (OrderID, SKU, Quantity)
+VALUES (6, 6, 44);
+INSERT INTO OrderProducts (OrderID, SKU, Quantity)
+VALUES (6, 2, 10);
