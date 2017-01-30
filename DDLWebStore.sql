@@ -67,7 +67,6 @@ CREATE TABLE OutOfStock (
 CREATE TABLE Inventory (
 
   SKU          INT NOT NULL PRIMARY KEY,
-  Manufacturer VARCHAR(50),
   Stock        SMALLINT,
 
   FOREIGN KEY (SKU) REFERENCES Product (SKU)
@@ -174,29 +173,29 @@ VALUES (4, 'Hunkydory', 'Eldon Jean', '38', 1699);
 INSERT INTO Product (ProductCategoryID, Manufacturer, Name, Size, Price)
 VALUES (5, 'HOPE-STHLM', 'STAY', '40', 1300);
 
-INSERT INTO Inventory (SKU, Manufacturer, Stock)
-VALUES (1, 'Nudie', 200);
+INSERT INTO Inventory (SKU, Stock)
+VALUES (1, 200);
 
-INSERT INTO Inventory (SKU, Manufacturer, Stock)
-VALUES (2, 'Nudie', 300);
+INSERT INTO Inventory (SKU, Stock)
+VALUES (2, 300);
 
-INSERT INTO Inventory (SKU, Manufacturer, Stock)
-VALUES (3, 'Nudie', 120);
+INSERT INTO Inventory (SKU, Stock)
+VALUES (3, 120);
 
-INSERT INTO Inventory (SKU, Manufacturer, Stock)
-VALUES (4, 'Tiger Of Sweden', 100);
+INSERT INTO Inventory (SKU, Stock)
+VALUES (4, 100);
 
-INSERT INTO Inventory (SKU, Manufacturer, Stock)
-VALUES (5, 'HOPE-STHLM', 150);
+INSERT INTO Inventory (SKU, Stock)
+VALUES (5, 150);
 
-INSERT INTO Inventory (SKU, Manufacturer, Stock)
-VALUES (6, 'Hunkydory', 150);
+INSERT INTO Inventory (SKU, Stock)
+VALUES (6, 150);
 
-INSERT INTO Inventory (SKU, Manufacturer, Stock)
-VALUES (7, 'Hunkydory', 100);
+INSERT INTO Inventory (SKU, Stock)
+VALUES (7, 100);
 
-INSERT INTO Inventory (SKU, Manufacturer, Stock)
-VALUES (8, 'HOPE-STHLM', 100);
+INSERT INTO Inventory (SKU, Stock)
+VALUES (8, 100);
 
 INSERT INTO `Order` (CustomerID, Date)
 VALUES (1, '2016-01-20 00:00:01');
