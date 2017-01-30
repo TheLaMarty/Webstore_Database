@@ -1,7 +1,5 @@
 CREATE DATABASE Webstore;
 
-DROP DATABASE Webstore;
-
 USE Webstore;
 
 CREATE TABLE Customer (
@@ -9,29 +7,45 @@ CREATE TABLE Customer (
   FirstName  VARCHAR(50) DEFAULT NULL,
   Surname    VARCHAR(50) DEFAULT NULL,
   City       VARCHAR(50) DEFAULT NULL
-);
-
-CREATE TABLE Product (
-
-  SKU          INT NOT NULL PRIMARY KEY,
-  CategoryID   INT NOT NULL,
-  Manufacturer VARCHAR(50),
-  Name         VARCHAR(50),
-  Size         VARCHAR(5),
-  Category     VARCHAR(50),
-  Price        DOUBLE
 
 );
 
 CREATE TABLE Category (
-  CategoryID   INT NOT NULL PRIMARY KEY,
-  CategoryName VARCHAR(50)
+  CategoryID   INT NOT NULL AUTO_INCREMENT,
+  CategoryName VARCHAR(50),
+
+  PRIMARY KEY (CategoryID, CategoryName)
+);
+
+CREATE TABLE ProductCategory (
+
+  ID         INT NOT NULL,
+  CategoryID INT NOT NULL,
+
+  PRIMARY KEY (ID, CategoryID),
+  FOREIGN KEY (CategoryID) REFERENCES Category (CategoryID)
+
+);
+
+CREATE TABLE Product (
+
+  SKU               INT    NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  ProductCategoryID INT    NOT NULL,
+  Manufacturer      VARCHAR(50),
+  Name              VARCHAR(50),
+  Size              VARCHAR(5),
+  Price             DOUBLE NOT NULL,
+
+  FOREIGN KEY (ProductCategoryID) REFERENCES ProductCategory (ID)
+
 );
 
 CREATE TABLE OutOfStock (
 
   SKU  INT NOT NULL PRIMARY KEY,
-  Date DATE
+  Date DATE,
+
+  FOREIGN KEY (SKU) REFERENCES Product (SKU)
 
 );
 
@@ -39,16 +53,9 @@ CREATE TABLE Inventory (
 
   SKU          INT NOT NULL PRIMARY KEY,
   Manufacturer VARCHAR(50),
-  Stock        SMALLINT
+  Stock        SMALLINT,
 
-);
-
-CREATE TABLE ProductCategory (
-
-  CategoryID INT NOT NULL,
-  SKU        INT NOT NULL,
-
-  PRIMARY KEY (CategoryID, SKU)
+  FOREIGN KEY (SKU) REFERENCES Product (SKU)
 
 );
 
@@ -57,7 +64,9 @@ CREATE TABLE OrderProducts (
   OrderID INT NOT NULL,
   SKU     INT NOT NULL,
 
-  PRIMARY KEY (OrderID, SKU)
+  PRIMARY KEY (OrderID, SKU),
+  FOREIGN KEY (OrderID) REFERENCES `Order` (OrderID),
+  FOREIGN KEY (SKU) REFERENCES Product (SKU)
 
 );
 
@@ -70,5 +79,8 @@ CREATE TABLE `Order` (
   `Date`     DATE,
   Quantity   TINYINT,
   PRIMARY KEY (OrderID),
-  FOREIGN KEY (CustomerID) REFERENCES Customer (CustomerID)
+  FOREIGN KEY (CustomerID) REFERENCES Customer (CustomerID),
+  FOREIGN KEY (SKU) REFERENCES Product (SKU)
+
 );
+
