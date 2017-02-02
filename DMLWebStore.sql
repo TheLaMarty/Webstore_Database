@@ -5,67 +5,95 @@ USE Webstore;
 -- #1 Lista antalet produkter per kategori.
 
 SELECT
-  Category.CategoryName,
-  COUNT(Product.SKU)
+  Category.CategoryName AS Category,
+  COUNT(*)              AS NumProducts
 FROM Category
   INNER JOIN ProductCategory ON Category.CategoryID = ProductCategory.CategoryID
-  INNER JOIN Product ON ProductCategory.ID = Product.ProductCategoryID
-GROUP BY Category.CategoryName;
+GROUP BY Category.CategoryID
+ORDER BY NumProducts DESC;
 
 -- #2 Skapa en kundlista med det totala ordervärdet kunden har beställt för. Lista kundens för- och efternamn, samt det totala ordervärdet.
 
 SELECT
-  CONCAT_WS(' ', Customer.FirstName, Customer.Surname),
-  SUM(Product.Price * OrderProducts.Quantity) AS Total_amount
+  CONCAT_WS(' ', Customer.FirstName, Customer.Surname) AS Customer,
+  SUM(SKU.Price * OrderProduct.Quantity)               AS TotalAmount
 FROM Customer
-  INNER JOIN `Order` ON Customer.CustomerID = Order.CustomerID
-  INNER JOIN OrderProducts ON Order.OrderID = OrderProducts.OrderID
-  INNER JOIN Product ON OrderProducts.SKU = Product.SKU
-WHERE OrderProducts.SKU = Product.SKU
-GROUP BY ORDER.OrderID;
+  INNER JOIN `Order` ON Customer.CustomerID = `Order`.CustomerID
+  INNER JOIN OrderProduct ON `Order`.OrderID = OrderProduct.OrderID
+  INNER JOIN SKU ON OrderProduct.SKUID = SKU.SKUID
+GROUP BY Customer.CustomerID
+ORDER BY TotalAmount DESC;
 
--- #3 Vilka kunder har köpt blåa byxor  storlek 32 av märket Nudie?
+-- #3 Vilka kunder har köpt blåa byxor storlek 32 av märket Nudie?
 
-SELECT CONCAT_WS(' ', Customer.FirstName, Customer.Surname) AS Customer
+SELECT DISTINCT CONCAT_WS(' ', Customer.FirstName, Customer.Surname) AS Customer
 FROM Customer
-  INNER JOIN `Order` ON Customer.CustomerID = Order.CustomerID
-  INNER JOIN OrderProducts ON Order.OrderID = OrderProducts.OrderID
-  INNER JOIN Product ON OrderProducts.SKU = Product.SKU
-WHERE OrderProducts.SKU = 1;
+  INNER JOIN `Order` ON Customer.CustomerID = `Order`.CustomerID
+  INNER JOIN OrderProduct ON `Order`.OrderID = OrderProduct.OrderID
+  INNER JOIN SKU ON OrderProduct.SKUID = SKU.SKUID
+  INNER JOIN Product ON SKU.ProductID = Product.ProductID
+  INNER JOIN Size ON SKU.SizeID = Size.SizeID
+WHERE Size = '32' AND Brand = 'Nudie'
+      AND 'Blue' IN (
+  SELECT CategoryName
+  FROM ProductCategory
+    INNER JOIN Category ON ProductCategory.CategoryID = Category.CategoryID
+  WHERE Product.ProductID = ProductCategory.ProductID)
+      AND 'Jeans' IN (
+  SELECT CategoryName
+  FROM ProductCategory
+    INNER JOIN Category ON ProductCategory.CategoryID = Category.CategoryID
+  WHERE Product.ProductID = ProductCategory.ProductID);
 
 -- #4 Skriv ut en lista på det totala ordervärdet per ort där ordervärdet är större än 1000 SEK
 
 SELECT
   Customer.City,
-  SUM(Product.price * OrderProducts.Quantity) AS Total_amount
+  SUM(SKU.Price * OrderProduct.Quantity) AS TotalAmount
 FROM Customer
-  INNER JOIN `Order` ON Customer.CustomerID = Order.CustomerID
-  INNER JOIN OrderProducts ON Order.OrderID = OrderProducts.OrderID
-  INNER JOIN Product ON OrderProducts.SKU = Product.SKU
-GROUP BY CUSTOMER.City
-HAVING Total_amount > 1000;
+  INNER JOIN `Order` ON Customer.CustomerID = `Order`.CustomerID
+  INNER JOIN OrderProduct ON `Order`.OrderID = OrderProduct.OrderID
+  INNER JOIN SKU ON OrderProduct.SKUID = SKU.SKUID
+GROUP BY Customer.City
+HAVING TotalAmount > 1000
+ORDER BY TotalAmount DESC;
 
 -- #5 Skapa en top lista av de mest sålda produkterna.
 
 SELECT
-  Product.Name,
-  COUNT(ALL OrderProducts.Quantity) AS TopSales
-FROM OrderProducts
-  INNER JOIN Product ON OrderProducts.OrderID = Product.SKU
-  INNER JOIN `Order` ON OrderProducts.OrderID = Order.OrderID
-GROUP BY Product.Name
-ORDER BY TopSales DESC;
+  Product.Brand,
+  Product.Name               AS Product,
+  SUM(OrderProduct.Quantity) AS Sales
+FROM OrderProduct
+  INNER JOIN SKU ON OrderProduct.SKUID = SKU.SKUID
+  INNER JOIN Product ON SKU.ProductID = Product.ProductID
+GROUP BY Product.ProductID
+ORDER BY Sales DESC
+LIMIT 5;
 
 -- #6 Vilken månad hade man den största försäljningen?
 
 SELECT
-  date_format(Order.Date, '%M') AS Month,
-  sum(Product.price * OrderProducts.Quantity) AS Total_Amount
-FROM `OrderProducts`
-  INNER JOIN `Order` ON OrderProducts.OrderID = `Order`.OrderID
-  INNER JOIN Product ON OrderProducts.SKU = Product.SKU
-WHERE OrderProducts.SKU = Product.SKU
+  DATE_FORMAT(`Order`.Date, '%M')        AS Month,
+  SUM(SKU.Price * OrderProduct.Quantity) AS TotalAmount
+FROM OrderProduct
+  INNER JOIN `Order` ON OrderProduct.OrderID = `Order`.OrderID
+  INNER JOIN SKU ON OrderProduct.SKUID = SKU.SKUID
 GROUP BY MONTH
 ORDER BY MONTH DESC
 LIMIT 1;
 
+-- ----------------------------------------------------------------------------------------
+
+-- #1 Test stored procedure: AddToBasket
+USE webstore;
+SET @orderID = NULL;
+CALL AddToBasket(1, 1, @orderID);
+
+USE webstore;
+SET @orderID = 1;
+CALL AddToBasket(1, 1, @orderID);
+
+USE webstore;
+SET @OrderID = 1;
+CALL AddToBasket(1, 1, @orderID);
