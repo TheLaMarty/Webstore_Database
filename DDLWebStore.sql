@@ -5,40 +5,43 @@ DROP DATABASE IF EXISTS Webstore;
 CREATE DATABASE Webstore;
 
 USE Webstore;
+SET sql_mode = (SELECT REPLACE(@@sql_mode, 'ONLY_FULL_GROUP_BY', ''));
 
 CREATE TABLE Customer (
 
   CustomerID INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  FirstName  VARCHAR(50) DEFAULT NULL,
-  Surname    VARCHAR(50) DEFAULT NULL,
-  City       VARCHAR(50) DEFAULT NULL
+  FirstName  VARCHAR(50)  DEFAULT NULL,
+  Surname    VARCHAR(50)  DEFAULT NULL,
+  City       VARCHAR(50)  DEFAULT NULL
 
 );
 
 CREATE TABLE Product (
 
-  ProductID         INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  Manufacturer      VARCHAR(50),
-  Name              VARCHAR(50)
+  ProductID    INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  Manufacturer VARCHAR(50),
+  Name         VARCHAR(50)
+
 );
 
 CREATE TABLE Size (
 
-  SizeID            INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  Size              VARCHAR(5)
+  SizeID INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  Size   VARCHAR(5)
 
 );
 
 CREATE TABLE SKU (
 
-  SKUID             INT NOT NULL AUTO_INCREMENT,
-  ProductID         INT NOT NULL,
-  SizeID            INT NOT NULL,
-  Price             DOUBLE NOT NULL,
+  SKUID     INT    NOT NULL AUTO_INCREMENT,
+  ProductID INT    NOT NULL,
+  SizeID    INT    NOT NULL,
+  Price     DOUBLE NOT NULL,
 
   PRIMARY KEY (SKUID, ProductID, SizeID),
   FOREIGN KEY (ProductID) REFERENCES Product (ProductID),
   FOREIGN KEY (SizeID) REFERENCES Size (SizeID)
+
 );
 
 CREATE TABLE Category (
@@ -50,7 +53,7 @@ CREATE TABLE Category (
 
 CREATE TABLE ProductCategory (
 
-  ProductID        INT NOT NULL,
+  ProductID  INT NOT NULL,
   CategoryID INT NOT NULL,
 
   PRIMARY KEY (ProductID, CategoryID),
@@ -61,9 +64,9 @@ CREATE TABLE ProductCategory (
 
 CREATE TABLE `Order` (
 
-  OrderID           INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  CustomerID        INT NOT NULL,
-  Date              DATE,
+  OrderID    INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  CustomerID INT NOT NULL,
+  Date       DATE,
 
   FOREIGN KEY (CustomerID) REFERENCES Customer (CustomerID)
 
@@ -71,9 +74,9 @@ CREATE TABLE `Order` (
 
 CREATE TABLE OrderProduct (
 
-  OrderID           INT NOT NULL,
-  SKUID               INT NOT NULL,
-  Quantity          TINYINT,
+  OrderID  INT NOT NULL,
+  SKUID    INT NOT NULL,
+  Quantity TINYINT,
 
   PRIMARY KEY (OrderID, SKUID),
   FOREIGN KEY (OrderID) REFERENCES `Order` (OrderID),
@@ -83,8 +86,8 @@ CREATE TABLE OrderProduct (
 
 CREATE TABLE Inventory (
 
-  SKUID             INT NOT NULL PRIMARY KEY,
-  Stock             INT,
+  SKUID INT NOT NULL PRIMARY KEY,
+  Stock INT,
 
   FOREIGN KEY (SKUID) REFERENCES SKU (SKUID)
 
@@ -92,8 +95,8 @@ CREATE TABLE Inventory (
 
 CREATE TABLE OutOfStock (
 
-  SKUID             INT NOT NULL PRIMARY KEY,
-  Date              DATE,
+  SKUID INT NOT NULL PRIMARY KEY,
+  Date  DATE,
 
   FOREIGN KEY (SKUID) REFERENCES SKU (SKUID)
 
@@ -214,6 +217,7 @@ INSERT INTO ProductCategory (ProductID, CategoryID) VALUES (5, 4);
 INSERT INTO ProductCategory (ProductID, CategoryID) VALUES (5, 5);
 INSERT INTO ProductCategory (ProductID, CategoryID) VALUES (5, 7);
 
+/*
 -- --------------- Order ------------------------
 INSERT INTO `Order` (OrderID, CustomerID, Date)
 VALUES (1, 1, '2016-01-20 00:00:01');
@@ -269,7 +273,7 @@ INSERT INTO OrderProduct (OrderID, SKUID, Quantity)
 VALUES (6, 6, 44);
 INSERT INTO OrderProduct (OrderID, SKUID, Quantity)
 VALUES (6, 2, 10);
-
+*/
 -- --------------- Inventory ------------------------
 INSERT INTO Inventory (SKUID, Stock)
 VALUES (1, 2);
@@ -295,34 +299,45 @@ VALUES (7, 100);
 INSERT INTO Inventory (SKUID, Stock)
 VALUES (8, 100);
 
-
 -- --------------- Procedures ------------------------
+
+-- ---- AddToBasket ----
 DROP PROCEDURE IF EXISTS AddToBasket;
-
 DELIMITER //
+CREATE PROCEDURE AddToBasket(IN in_customer_id INT, IN in_sku_id INT, IN inout_order_id INT)
 
-CREATE PROCEDURE AddToBasket(IN in_customer_id INT, IN in_sku_id INT, INOUT inout_order_id INT)
-
-  proc: BEGIN
+    proc: BEGIN
 
     -- Validate all input
-    IF (in_customer_id IS NULL) OR ((SELECT COUNT(*) FROM Customer WHERE in_customer_id = Customer.CustomerID) = 0) THEN
+    IF (in_customer_id IS NULL) OR ((SELECT COUNT(*)
+                                     FROM Customer
+                                     WHERE in_customer_id = Customer.CustomerID) = 0)
+    THEN
       SELECT 'ERROR: in_customer_id not found';
       LEAVE proc;
     END IF;
 
-    IF (in_sku_id IS NULL) OR ((SELECT COUNT(*) FROM SKU WHERE in_sku_id = SKU.SKUID) = 0) THEN
+    IF (in_sku_id IS NULL) OR ((SELECT COUNT(*)
+                                FROM SKU
+                                WHERE in_sku_id = SKU.SKUID) = 0)
+    THEN
       SELECT 'Error: in_sku_id not found';
       LEAVE proc;
     END IF;
 
-    IF (inout_order_id IS NOT NULL) AND ((SELECT COUNT(*) FROM `Order` WHERE inout_order_id = `Order`.OrderID) = 0) THEN
+    IF (inout_order_id IS NOT NULL) AND ((SELECT COUNT(*)
+                                          FROM `Order`
+                                          WHERE inout_order_id = `Order`.OrderID) = 0)
+    THEN
       SELECT 'Error: inout_order_id not found';
       LEAVE proc;
     END IF;
 
     -- Validate that the CustomerID for an existing OrderID matches the provided customerID
-    IF (inout_order_id IS NOT NULL) AND (SELECT `Order`.CustomerID FROM `Order` WHERE inout_order_id = `Order`.OrderID) != in_customer_id THEN
+    IF (inout_order_id IS NOT NULL) AND (SELECT `Order`.CustomerID
+                                         FROM `Order`
+                                         WHERE inout_order_id = `Order`.OrderID) != in_customer_id
+    THEN
       SELECT 'Error: in_customer_id does not match existing inout_order_id';
       LEAVE proc;
     END IF;
@@ -330,77 +345,89 @@ CREATE PROCEDURE AddToBasket(IN in_customer_id INT, IN in_sku_id INT, INOUT inou
     START TRANSACTION; -- --------------------------------------------------------
 
     -- Create new order if the orderId was null
-    IF inout_order_id IS NULL THEN
+    IF inout_order_id IS NULL
+    THEN
       INSERT INTO `Order` (CustomerID, Date)
       VALUES (in_customer_id, NOW());
       -- Retrieve the generated orderId
-      SELECT LAST_INSERT_ID() INTO inout_order_id;
+      SELECT LAST_INSERT_ID()
+      INTO inout_order_id;
     END IF;
 
-    -- Try to add product to basket...
+    -- Try to add product to basket
 
-    -- Validate if we have at least one product at stock
-    IF (SELECT Inventory.Stock FROM Inventory WHERE in_sku_id = Inventory.SKUID) < 1 THEN
+    -- Validate if there's at least one product in stock
+    IF (SELECT Inventory.Stock
+        FROM Inventory
+        WHERE in_sku_id = Inventory.SKUID) < 1
+    THEN
       SELECT 'WARNING: Product was not added to the basket because it is out of stock';
       LEAVE proc;
     END IF;
 
-    -- Insert a new product if we already have that product in the basket
-    IF (SELECT Count(*) FROM OrderProduct WHERE inout_order_id = OrderProduct.OrderID AND in_sku_id = OrderProduct.SKUID) = 0 THEN
+    -- Insert a new product if that product's already in the basket
+    IF (SELECT Count(*)
+        FROM OrderProduct
+        WHERE inout_order_id = OrderProduct.OrderID AND in_sku_id = OrderProduct.SKUID) = 0
+    THEN
       INSERT INTO OrderProduct (OrderID, SKUID, Quantity)
       VALUES (inout_order_id, in_sku_id, 1);
     -- Increment only the quantity if that product is already in the basket
     ELSE
-      UPDATE OrderProduct SET Quantity = Quantity + 1
+      UPDATE OrderProduct
+      SET Quantity = Quantity + 1
       WHERE inout_order_id = OrderProduct.OrderID AND in_sku_id = OrderProduct.SKUID;
     END IF;
 
     -- Decrement to product's stock in the inventory
-    UPDATE Inventory SET Stock = Stock - 1
+    UPDATE Inventory
+    SET Stock = Stock - 1
     WHERE in_sku_id = Inventory.SKUID;
 
-    COMMIT ;-- --------------------------------------------------------
+    COMMIT; -- --------------------------------------------------------
 
     SELECT 'SUCCESS: AddToBasket finished';
 
   END //
-
 DELIMITER ;
 
--- --------------------------------------------------------------------
 
+-- ---- TopProducts ----
+DROP PROCEDURE IF EXISTS TopProducts;
 DELIMITER //
-CREATE PROCEDURE TopProducts(IN startDate DATE, IN endDate DATE, IN listRange INT)
+CREATE PROCEDURE TopProducts(IN start_date DATE, IN end_date DATE, IN list_range INT)
   BEGIN
     SELECT
       Product.Name,
-      COUNT(OrderProduct.SKUID * OrderProduct.SKUID) AS Products_sold
+      SUM(ALL OrderProduct.Quantity) AS ProductsSold
     FROM OrderProduct
       INNER JOIN `Order` ON OrderProduct.OrderID = `Order`.OrderID
       INNER JOIN SKU ON OrderProduct.SKUID = SKU.SKUID
-      INNER JOIN Product ON SKU.SKUID = Product.SKU
-    WHERE Order.date >= startDate AND Order.date <= endDate
-    GROUP BY Product.Name
-    ORDER BY Products_sold DESC
-    LIMIT listRange;
+      INNER JOIN Product ON SKU.ProductID = Product.ProductID
+    WHERE `Order`.Date >= start_date AND `Order`.Date <= end_date
+    GROUP BY Product.ProductID
+    ORDER BY ProductsSold DESC
+    LIMIT list_range;
   END //
 DELIMITER ;
 
-CALL TopProducts('20160101', '20161231', 7);
 
--- --------------------------------------------------------------------
+-- --------------- Triggers ------------------------
 
-
+-- ---- OutOfStock ----
 DROP TRIGGER IF EXISTS OutOfStock;
-
 DELIMITER //
 CREATE TRIGGER OutOfStock
-AFTER UPDATE ON SKU
+AFTER UPDATE ON Inventory
 FOR EACH ROW
   BEGIN
-    INSERT IGNORE INTO OutOfStock (SKUID, DATE ) SELECT (new.SKUID, current_date)
-                                                           FROM Inventory
-                                                           WHERE Stock = 0;
-END//
+    IF (new.Stock = 0) AND ((SELECT COUNT(*)
+                             FROM OutOfStock
+                             WHERE new.SKUID = OutOfStock.SKUID) = 0)
+    THEN
+      INSERT INTO OutOfStock (SKUID, Date) VALUES (new.SKUID, NOW());
+    END IF;
+  END //
 DELIMITER ;
 
+SELECT * FROM `OrderProduct` WHERE OrderID = 2;
